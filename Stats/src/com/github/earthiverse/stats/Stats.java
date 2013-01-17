@@ -41,14 +41,15 @@ public class Stats extends JavaPlugin implements Listener {
 	/** Plugin Startup **/
 	@Override
 	public void onEnable() {
+		// Load settings from config.yml in Stats plugin directory
+	    this.saveDefaultConfig();
+		String mysql_hostname = this.getConfig().getString("mysql.hostname");
+		int mysql_port = this.getConfig().getInt("mysql.port");
+		String mysql_database = this.getConfig().getString("mysql.database");
+		String mysql_username = this.getConfig().getString("mysql.username");
+		String mysql_password = this.getConfig().getString("mysql.password");
+
 		// Connect to MySQL Server
-		// TODO - Read settings from a file instead of being hard-coded in
-		String mysql_hostname = "earthiverse.ath.cx";
-		int mysql_port = 3306;
-		String mysql_database = "minecraft";
-		String mysql_username = "minecraft";
-		String mysql_password = "minecraft";
-		
 		mysql = new MySQL(getLogger(), "[Stats]", mysql_hostname, mysql_port, mysql_database, mysql_username, mysql_password);
 		mysql.open();
 		if(mysql.isConnected()) {
