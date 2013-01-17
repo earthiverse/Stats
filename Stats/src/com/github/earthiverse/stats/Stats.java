@@ -10,33 +10,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.event.Listener;
-import org.bukkit.event.EventHandler;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerBucketFillEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerExpChangeEvent;
-//import org.bukkit.event.player.PlayerMoveEvent;
-//import org.bukkit.Location;
 
-import com.github.earthiverse.stats.UserList.User;
+import com.github.earthiverse.stats.UserList.Player;
 
-
-public class Stats extends JavaPlugin implements Listener {
+public class Stats extends JavaPlugin {
 	
 	private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	Runnable UpdateDB = new UpdateDB();
 	
 	private MySQL mysql;
-	private String table_name = "stats_new";
-	private UserList users = new UserList();
-	private BlockFix blockfix = new BlockFix();
+	private String table_name;
+	UserList Cache = UserList.getInstance();
 	
 	/** Plugin Startup **/
 	@Override
@@ -46,6 +30,7 @@ public class Stats extends JavaPlugin implements Listener {
 		String mysql_hostname = this.getConfig().getString("mysql.hostname");
 		int mysql_port = this.getConfig().getInt("mysql.port");
 		String mysql_database = this.getConfig().getString("mysql.database");
+		this.table_name = this.getConfig().getString("mysql.table");
 		String mysql_username = this.getConfig().getString("mysql.username");
 		String mysql_password = this.getConfig().getString("mysql.password");
 
@@ -53,13 +38,13 @@ public class Stats extends JavaPlugin implements Listener {
 		mysql = new MySQL(getLogger(), "[Stats]", mysql_hostname, mysql_port, mysql_database, mysql_username, mysql_password);
 		mysql.open();
 		if(mysql.isConnected()) {
-			getLogger().info(ChatColor.GREEN + "Connected to Database @ " + mysql_hostname + ":" + mysql_port + "!");
+			System.out.println("[Stats] Connected to Database @ " + mysql_hostname + ":" + mysql_port + "!");
 		} else {
-			getLogger().info(ChatColor.RED + "Problem connecting to " + mysql_hostname + ":" + mysql_port + "!");
+			System.out.println("[Stats] Problem connecting to " + mysql_hostname + ":" + mysql_port + "!");
 		}
 		
 		// Start Event Handlers
-		getServer().getPluginManager().registerEvents(this, this);
+		getServer().getPluginManager().registerEvents(new Listener(), this);
 		
 		// Update the database in 60 seconds, and every 30 seconds thereafter
 		executor.scheduleWithFixedDelay(UpdateDB, 60, 30, TimeUnit.SECONDS);
@@ -112,7 +97,7 @@ public class Stats extends JavaPlugin implements Listener {
 			}
 			
 			// Open User Cache
-			for (Entry<String, User> user : users.userlist.entrySet()) {
+			for (Entry<String, Player> user : Cache.getPlayerSet()) {
 				// Set player
 				try {
 					replaceStat.setString(1, user.getKey());
@@ -143,6 +128,7 @@ public class Stats extends JavaPlugin implements Listener {
 						e.printStackTrace();
 					}
 				}
+				
 				// Remove the values we just added
 				user.getValue().BlocksDestroyed.clear();
 				
@@ -172,19 +158,19 @@ public class Stats extends JavaPlugin implements Listener {
 				user.getValue().BlocksPlaced.clear();
 				
 				// Update Player Experience
-				if(user.getValue().ExpGained != 0) {
+				if(user.getValue().Experience != 0) {
 					try {
 						updateStat.setString(2, "PlayerStat");
 						updateStat.setString(3, "EXP_GAINED");
 						updateStat.setInt(4, 0);
-						updateStat.setInt(5, user.getValue().ExpGained);
-						updateStat.setInt(6, user.getValue().ExpGained);
+						updateStat.setInt(5, user.getValue().Experience);
+						updateStat.setInt(6, user.getValue().Experience);
 						updateStat.executeUpdate();
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
 					// Reset EXP cache to zero
-					user.getValue().ExpGained = 0;
+					user.getValue().Experience = 0;
 				}
 				
 				// Replace Player Last_Login Time
@@ -217,81 +203,9 @@ public class Stats extends JavaPlugin implements Listener {
 					}
 					// Reset Login to zero
 					user.getValue().Logout = 0;
-					users.userlist.remove(user.getKey());
+					Cache.removePlayer(user.getKey());
 				}
 			}
 		}
 	}
-
-	/** Event Handlers **/
-
-	/** Blocks **/
-	// Block - Break
-	@EventHandler
-	public void BlockBreak(BlockBreakEvent event) {
-		String username = event.getPlayer().getName();
-		Block block = blockfix.FixData(event.getBlock());
-		
-		users.addEntry(users.userlist.get(username).BlocksDestroyed, username, block.getType().toString(), block.getData(), 1);
-	}
-	// Block - Place
-	@EventHandler
-	public void BlockPlace(BlockPlaceEvent event) {
-		String username = event.getPlayer().getName();
-		Block block = blockfix.FixData(event.getBlock());
-		
-		users.addEntry(users.userlist.get(username).BlocksPlaced, username, block.getType().toString(), block.getData(), 1);
-	}
-	// Bucket Usage
-	@EventHandler
-	public void BucketEmpty(PlayerBucketEmptyEvent event) {
-		String username = event.getPlayer().getName();
-		if(event.getBucket().equals(Material.WATER_BUCKET)) {
-			users.addEntry(users.userlist.get(username).BlocksPlaced, username, "WATER", 0, 1);
-		} else if(event.getBucket().equals(Material.LAVA_BUCKET)) {
-			users.addEntry(users.userlist.get(username).BlocksPlaced, username, "LAVA", 0, 1);
-		}
-	}
-	@EventHandler
-	public void BucketFill(PlayerBucketFillEvent event) {
-		String username = event.getPlayer().getName();
-		
-		if(event.getBlockClicked().getType().equals(Material.WATER) || event.getBlockClicked().getType().equals(Material.STATIONARY_WATER)) {
-			users.addEntry(users.userlist.get(username).BlocksDestroyed, username, "WATER", 0, 1);
-		} else if(event.getBlockClicked().getType().equals(Material.LAVA) || event.getBlockClicked().getType().equals(Material.STATIONARY_LAVA)) {
-			users.addEntry(users.userlist.get(username).BlocksDestroyed, username, "LAVA", 0, 1);
-		}
-	}
-	
-	/** Players **/
-	// Player - Login
-	@EventHandler
-	public void PlayerLogin(PlayerLoginEvent event) {
-		String username = event.getPlayer().getName();
-		users.checkUser(username);
-		users.userlist.get(username).Login = Math.round(System.currentTimeMillis()/1000);
-	}
-	// Player - Logout
-	@EventHandler
-	public void PlayerLogout(PlayerQuitEvent event) {
-		String username = event.getPlayer().getName();
-		users.userlist.get(username).Logout = Math.round(System.currentTimeMillis()/1000);
-	}
-	// Player - Experience
-	@EventHandler
-	public void PlayerExp(PlayerExpChangeEvent event) {
-		String username = event.getPlayer().getName();
-		users.userlist.get(username).ExpGained +=  event.getAmount();
-	}
-	// Player - Move
-//	@EventHandler
-//	public void PlayerMove(PlayerMoveEvent event) {
-//		Player player = event.getPlayer();
-//		Location from = event.getFrom();
-//		Location to = event.getTo();
-//		double distance = Math.sqrt(from.distanceSquared(to));
-//		if(distance > 0) {
-//			getLogger().info(player.getName() + " moved " + distance + "m.");
-//		}
-//	}
 }

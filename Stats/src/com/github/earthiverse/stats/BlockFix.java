@@ -4,7 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 public class BlockFix {
-	public Block FixData(Block block) {
+	public static Block FixData(Block block) {
 		if ((block.getType().equals(Material.LEAVES) || block.getType().equals(
 				Material.SAPLING))
 				&& block.getData() >= 8) {
