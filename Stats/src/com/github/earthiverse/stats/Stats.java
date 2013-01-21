@@ -100,6 +100,7 @@ public class Stats extends JavaPlugin {
 			for (Entry<String, Player> user : Cache.getPlayerSet()) {
 				// Set player
 				try {
+					System.out.println("[DEBUG Stats] " + user.getKey());
 					replaceStat.setString(1, user.getKey());
 					updateStat.setString(1, user.getKey());
 				} catch (SQLException e) {
@@ -128,7 +129,6 @@ public class Stats extends JavaPlugin {
 						e.printStackTrace();
 					}
 				}
-				
 				// Remove the values we just added
 				user.getValue().BlocksDestroyed.clear();
 				
