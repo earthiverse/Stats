@@ -23,8 +23,6 @@ public class UserList {
 		public HashMap<String, Integer> BlocksDestroyed = new HashMap<String, Integer>();
 		public HashMap<String, Integer> BlocksPlaced = new HashMap<String, Integer>();
 		
-		// TODO: Fix the following variables so I don't have to suppress warnings.
-		
 		int Experience;
 		
 		long Login;
