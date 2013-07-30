@@ -1,7 +1,9 @@
 About Stats
 ===========
 Stats plugin for Bukkit/Minecraft
+
 Created for my personal server, but you can have it, too!
+
 EXPECT LOTS OF CHANGES, THIS IS NOT COMPLETE.
 
 Changelog
