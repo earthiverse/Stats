@@ -1,27 +1,20 @@
 About Stats
 ===========
 Stats plugin for Bukkit/Minecraft
-
 Created for my personal server, but you can have it, too!
-
 EXPECT LOTS OF CHANGES, THIS IS NOT COMPLETE.
-
-
 
 Changelog
 =========
 0.2
 ---
-  Reorganized git repo
-  Slightly safer multithreading
-  A few more block fixes
-  Doesn't alter the blocks and wreck everything on the server
-
+  * Reorganized git repo
+  * Slightly safer multithreading
+  * A few more block fixes
+  * Doesn't alter the blocks and wreck everything on the server
 0.1
 ---
-  Initial Release
-
-
+  * Initial Release
 
 Setup
 =====
@@ -29,8 +22,6 @@ Setup
 Bukkit
 ------
 Copy the jar to the plugin folder, fill in plugins/Stats/config.yml
-
-
 
 License
 =======
