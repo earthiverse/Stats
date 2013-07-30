@@ -1,0 +1,7 @@
+name: Stats
+version: 0.2
+author: earthiverse
+
+description: Logs player statistics in a mySQL database.
+
+main: com.github.earthiverse.stats.Stats
