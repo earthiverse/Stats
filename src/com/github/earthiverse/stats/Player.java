@@ -8,13 +8,13 @@ public class Player {
 
 	int experience;
 
-	long last_update;
+	long last_update_time;
 	long login_time;
 	long logout_time;
 
 	Player(int experience, long login_time, long logout_time) {
 		this.experience = experience;
-		last_update = 0L;
+		last_update_time = 0L;
 		this.login_time = login_time;
 		this.logout_time = logout_time;
 		blocks_placed = new HashMap<Key, Integer>();
@@ -23,7 +23,7 @@ public class Player {
 
 	public Player() {
 		experience = 0;
-		last_update = 0L;
+		last_update_time = 0L;
 		login_time = 0L;
 		logout_time = 0L;
 		blocks_placed = new HashMap<Key, Integer>();
@@ -53,6 +53,18 @@ public class Player {
 	void set_logout_time(long logout_time) {
 		this.logout_time = logout_time;
 	}
+	
+	long get_last_update_time() {
+		return last_update_time;
+	}
+	
+	void set_last_update_time(long last_update_time) {
+		this.last_update_time = last_update_time;
+	}
+	
+	HashMap<Key, Integer> get_blocks_destroyed() {
+		return blocks_destroyed;
+	}
 
 	void destroy_block(String block, int data, int amount) {
 		Key key = new Key(block, data);
@@ -65,6 +77,10 @@ public class Player {
 			// Increase Amount
 			blocks_destroyed.put(key, entry + amount);
 		}
+	}
+	
+	HashMap<Key, Integer> get_blocks_placed() {
+		return blocks_placed;
 	}
 
 	void place_block(String block, int data, int amount) {
@@ -85,13 +101,5 @@ public class Player {
 		if (exp > 0) {
 			experience += exp;
 		}
-	}
-
-	void update_login(long login) {
-		login_time = login;
-	}
-
-	void update_logout(long logout) {
-		logout_time = logout;
 	}
 }

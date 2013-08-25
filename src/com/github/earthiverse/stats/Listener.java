@@ -29,7 +29,7 @@ public class Listener implements org.bukkit.event.Listener {
 			// Player is new since Plugin was loaded
 			cache.put(username, new Player(0, time, 0));
 		} else {
-			user.update_login(time);
+			user.set_login_time(time);
 		}
 	}
 

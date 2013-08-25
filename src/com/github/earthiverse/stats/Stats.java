@@ -121,16 +121,16 @@ public class Stats extends JavaPlugin {
 				e.printStackTrace();
 			}
 
-			// Go through cache, dumping it to the database then emptying
-			// it.
-			// Possible TODO: There's a lot of duplicated code in the
-			// following
+			// Go through cache, dumping it to the database then emptying it.
+			// Possible TODO: There's a lot of duplicated code in the following
 			// section
 			for (Entry<String, Player> user : cache.entrySet()) {
 				String username = user.getKey();
 				Player data = user.getValue();
 
 				try {
+					long current_time = System.currentTimeMillis() / 1000L;
+
 					// Set Username
 					replace.setString(1, username);
 					update.setString(1, username);
@@ -174,7 +174,7 @@ public class Stats extends JavaPlugin {
 					replace.setInt(4, 0);
 
 					// Update Player Experience
-					int experience = data.experience;
+					int experience = data.get_experience();
 					if (experience != 0) {
 						update.setString(3, "EXP_GAINED");
 						update.setInt(5, experience);
@@ -183,28 +183,28 @@ public class Stats extends JavaPlugin {
 						data.set_experience(0);
 					}
 
-					// TODO: Update Player Played For Time
-					// Long time = System.currentTimeMillis() / 1000L;
-					// if (data.last_update.get() == 0) {
-					// data.last_update.set(time);
-					// // Update time based on login
-					//
-					// } else {
-					// Long elapsed = 0L;
-					// long login_time = data.login_time.get();
-					// long logout_time = data.logout_time.get();
-					// if(logout_time != 0) {
-					//
-					// }
-					// elapsed = time - data.last_update.get();
-					// update.setString(3, "PLAYED_FOR");
-					// update.setLong(5, elapsed);
-					// update.setLong(6, elapsed);
-					// update.executeUpdate();
-					// data.last_update.set(time);
-					// }
+					// Update Player Played-For Time
+					long last_update_time = data.get_last_update_time();
+					long played_for_time = 0;
+					if (last_update_time == 0) {
+						// Player logged in since last update
+						played_for_time = current_time - data.get_login_time();
+					} else if (data.get_logout_time() == 0) {
+						// Player is still logged in
+						played_for_time = current_time - last_update_time;
+					} else {
+						// Player has logged out since last update
+						played_for_time = data.get_logout_time()
+								- last_update_time;
+					}
+					if (played_for_time > 0) {
+						update.setString(3, "PLAYED_FOR");
+						update.setLong(5, played_for_time);
+						update.setLong(6, played_for_time);
+						update.executeUpdate();
+					}
 
-					// Update Player Last Login Time
+					// Update Player Last-Login Time
 					long login_time = data.get_login_time();
 					if (login_time != 0) {
 						replace.setString(3, "LOGIN_LAST");
@@ -213,7 +213,7 @@ public class Stats extends JavaPlugin {
 						data.set_login_time(0);
 					}
 
-					// Update Player Last Logout Time
+					// Update Player Last-Logout Time
 					long logout_time = data.get_logout_time();
 					if (logout_time != 0) {
 						replace.setString(3, "LOGOUT_LAST");
@@ -222,12 +222,14 @@ public class Stats extends JavaPlugin {
 						data.set_logout_time(0);
 					}
 
+					data.set_last_update_time(current_time);
+
 				} catch (SQLException e) {
 					log.warning("WARNING: Problem Adding User Data to Database!");
 					e.printStackTrace();
 				}
 			}
-			
+
 			try {
 				connection.close();
 			} catch (SQLException e) {

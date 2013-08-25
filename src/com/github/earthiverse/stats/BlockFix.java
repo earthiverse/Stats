@@ -5,8 +5,7 @@ import org.bukkit.block.Block;
 
 /*
  * Fixes block data to personal preference
- * (I don't think it's worthwhile to store what position the blocks were in,
- * among other things)
+ * (I don't think it's worthwhile to store what position the blocks were in, among other things)
  * 
  * Refer to http://www.minecraftwiki.net/wiki/Data_values
  */
@@ -28,7 +27,10 @@ public class BlockFix {
 
 		} else if (material.equals(Material.LOG)) {
 			// Remove Position Data
-			data = (byte) (data % 4);
+			// If the data is 12,13,14 or 15 it only has bark
+			if (data < 12) {
+				data = (byte) (data % 4);
+			}
 
 		} else if (material.equals(Material.GLOWING_REDSTONE_ORE)) {
 			// Combine GLOWING_REDSTONE_ORE and REDSTONE_ORE
@@ -39,7 +41,8 @@ public class BlockFix {
 			// Remove Pressed Data
 			data = (byte) 0;
 
-		} else if (material.equals(Material.CHEST)
+		} else if (material.equals(Material.BED_BLOCK)
+				|| material.equals(Material.CHEST)
 				|| material.equals(Material.FURNACE)
 				|| material.equals(Material.LADDER)
 				|| material.equals(Material.LEVER)
@@ -83,6 +86,11 @@ public class BlockFix {
 				|| material.equals(Material.NETHER_WARTS)) {
 			// Remove Growth & Wetness Data
 			data = (byte) 0;
+
+		} else if (material.equals(Material.COCOA)) {
+			// Remove Position Data
+			data = (byte) (data >> 2);
+			data = (byte) (data << 2);
 		}
 
 		return new BlockData(type, data);
