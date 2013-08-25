@@ -25,6 +25,11 @@ public class Stats extends JavaPlugin {
 
 	// MySQL Info
 	private String table;
+	private String hostname;
+	private String port;
+	private String database;
+	private String username;
+	private String password;
 	private Connection connection;
 
 	// Player Cache
@@ -44,23 +49,12 @@ public class Stats extends JavaPlugin {
 
 		// Get configuration
 		FileConfiguration Config = this.getConfig();
-
-		// Make connection
 		table = Config.getString("mysql.table");
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection(
-					"jdbc:mysql://" + Config.getString("mysql.hostname") + ":"
-							+ Config.getString("mysql.port") + "/"
-							+ Config.getString("mysql.database"),
-					Config.getString("mysql.username"),
-					Config.getString("mysql.password"));
-		} catch (SQLException e) {
-			System.out.println("Could not connect to MySQL server! because: "
-					+ e.getMessage());
-		} catch (ClassNotFoundException e) {
-			System.out.println("JDBC Driver not found!");
-		}
+		hostname = Config.getString("mysql.hostname");
+		port = Config.getString("mysql.port");
+		database = Config.getString("mysql.database");
+		username = Config.getString("mysql.username");
+		password = Config.getString("mysql.password");
 
 		// Setup Event Listener
 		getServer().getPluginManager()
@@ -89,18 +83,26 @@ public class Stats extends JavaPlugin {
 		}
 
 		// Close Connection to MySQL Server
-		try {
-			connection.close();
-		} catch (SQLException e) {
-			log.warning("WARNING: Problem Closing Database Connection!");
-			e.printStackTrace();
-		}
 		log.info("Shutdown!");
 	}
 
 	private final class UpdateDB implements Runnable {
 		@Override
 		public void run() {
+			// Make connection
+			try {
+				Class.forName("com.mysql.jdbc.Driver");
+				connection = DriverManager.getConnection("jdbc:mysql://"
+						+ hostname + ":" + port + "/" + database, username,
+						password);
+			} catch (SQLException e) {
+				System.out
+						.println("Could not connect to MySQL server! because: "
+								+ e.getMessage());
+			} catch (ClassNotFoundException e) {
+				System.out.println("JDBC Driver not found!");
+			}
+
 			String replace_s = "REPLACE INTO " + table
 					+ " (`username`,`category`,`statistic`,`data`,`value`)"
 					+ " VALUES (?,?,?,?,?);";
@@ -119,8 +121,10 @@ public class Stats extends JavaPlugin {
 				e.printStackTrace();
 			}
 
-			// Go through cache, dumping it to the database then emptying it.
-			// Possible TODO: There's a lot of duplicated code in the following
+			// Go through cache, dumping it to the database then emptying
+			// it.
+			// Possible TODO: There's a lot of duplicated code in the
+			// following
 			// section
 			for (Entry<String, Player> user : cache.entrySet()) {
 				String username = user.getKey();
@@ -222,6 +226,13 @@ public class Stats extends JavaPlugin {
 					log.warning("WARNING: Problem Adding User Data to Database!");
 					e.printStackTrace();
 				}
+			}
+			
+			try {
+				connection.close();
+			} catch (SQLException e) {
+				log.warning("WARNING: Problem Committing and Closing Database!");
+				e.printStackTrace();
 			}
 		}
 	}
