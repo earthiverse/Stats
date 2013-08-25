@@ -37,19 +37,19 @@ public class Player {
 	void set_experience(int experience) {
 		this.experience = experience;
 	}
-	
+
 	long get_login_time() {
 		return login_time;
 	}
-	
+
 	void set_login_time(long login_time) {
 		this.login_time = login_time;
 	}
-	
+
 	long get_logout_time() {
 		return logout_time;
 	}
-	
+
 	void set_logout_time(long logout_time) {
 		this.logout_time = logout_time;
 	}

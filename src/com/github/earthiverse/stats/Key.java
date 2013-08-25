@@ -9,11 +9,11 @@ public class Key {
 		this.block = block;
 		this.data = data;
 	}
-	
+
 	public String get_block() {
 		return this.block;
 	}
-	
+
 	public int get_data() {
 		return this.data;
 	}
